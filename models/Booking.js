@@ -6,6 +6,7 @@ const bookingSchema = new mongoose.Schema({
         ref: 'User',
         required: true
     },
+<<<<<<< HEAD
     mechanicId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Mechanic'
@@ -18,6 +19,8 @@ const bookingSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Quote'
     },
+=======
+>>>>>>> 76d13f74b301aa638e1707c0d66b72f6c24d4e54
     serviceType: {
         type: String,
         required: true,
@@ -48,13 +51,18 @@ const bookingSchema = new mongoose.Schema({
     },
     status: {
         type: String,
+<<<<<<< HEAD
         enum: ['Pending', 'Confirmed', 'In Progress', 'Completed', 'Cancelled'],
+=======
+        enum: ['Pending', 'Confirmed', 'Completed', 'Cancelled'],
+>>>>>>> 76d13f74b301aa638e1707c0d66b72f6c24d4e54
         default: 'Pending'
     },
     price: {
         type: String,
         required: true
     },
+<<<<<<< HEAD
     paymentStatus: {
         type: String,
         enum: ['Pending', 'Paid', 'Refunded'],
@@ -64,6 +72,8 @@ const bookingSchema = new mongoose.Schema({
         type: String,
         trim: true
     },
+=======
+>>>>>>> 76d13f74b301aa638e1707c0d66b72f6c24d4e54
     notes: {
         type: String,
         trim: true

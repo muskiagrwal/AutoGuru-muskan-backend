@@ -54,7 +54,11 @@ const optionalAuth = (req, res, next) => {
 
 module.exports = {
     authenticateToken,
+<<<<<<< HEAD
     optionalAuth,
     // Alias for consistency with new routes
     protect: authenticateToken
+=======
+    optionalAuth
+>>>>>>> 76d13f74b301aa638e1707c0d66b72f6c24d4e54
 };
