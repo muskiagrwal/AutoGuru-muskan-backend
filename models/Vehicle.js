@@ -39,6 +39,26 @@ const vehicleSchema = new mongoose.Schema({
     },
     lastServiceMileage: {
         type: Number
+    },
+    currentOdometer: {
+        type: Number
+    },
+    nextServiceDue: {
+        type: Date
+    },
+    serviceInterval: {
+        type: Number, // In kilometers
+        default: 10000
+    },
+    color: {
+        type: String,
+        trim: true
+    },
+    images: [{
+        type: String // URLs to vehicle images
+    }],
+    primaryImage: {
+        type: String // Main vehicle image URL
     }
 }, {
     timestamps: true

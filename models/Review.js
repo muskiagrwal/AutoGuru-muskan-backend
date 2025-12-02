@@ -37,6 +37,13 @@ const reviewSchema = new mongoose.Schema({
     isVerified: {
         type: Boolean,
         default: true // Since we link to a bookingId, it's verified by default
+    },
+    photos: [{
+        type: String // URLs to review photos
+    }],
+    verifiedPurchase: {
+        type: Boolean,
+        default: true // True if review is linked to a completed booking
     }
 }, {
     timestamps: true

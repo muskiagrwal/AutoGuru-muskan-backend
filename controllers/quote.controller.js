@@ -164,3 +164,90 @@ exports.rejectQuote = async (req, res, next) => {
         next(error);
     }
 };
+
+// Request quotes from multiple mechanics at once
+exports.requestMultipleQuotes = async (req, res, next) => {
+    try {
+        const { mechanicIds, vehicleId, serviceType, description } = req.body;
+
+        if (!mechanicIds || !Array.isArray(mechanicIds) || mechanicIds.length === 0) {
+            return errorResponse(res, 'Please provide at least one mechanic ID', 400);
+        }
+
+        // Verify all mechanics exist
+        const mechanics = await Mechanic.find({ _id: { $in: mechanicIds } });
+        if (mechanics.length !== mechanicIds.length) {
+            return errorResponse(res, 'One or more mechanics not found', 404);
+        }
+
+        // Create quotes for all mechanics
+        const quotePromises = mechanicIds.map(mechanicId =>
+            Quote.create({
+                userId: req.user.id,
+                mechanicId,
+                vehicleId,
+                serviceType,
+                description,
+                status: 'Pending'
+            })
+        );
+
+        const quotes = await Promise.all(quotePromises);
+
+        return successResponse(res, quotes, `${quotes.length} quotes requested successfully`, 201);
+    } catch (error) {
+        next(error);
+    }
+};
+
+// Compare multiple quotes
+exports.compareQuotes = async (req, res, next) => {
+    try {
+        const { quoteIds } = req.query;
+
+        if (!quoteIds) {
+            return errorResponse(res, 'Please provide quote IDs to compare', 400);
+        }
+
+        const ids = Array.isArray(quoteIds) ? quoteIds : quoteIds.split(',');
+
+        const quotes = await Quote.find({
+            _id: { $in: ids },
+            userId: req.user.id // Ensure user owns these quotes
+        })
+            .populate('mechanicId', 'businessName rating priceRange address phone')
+            .populate('vehicleId', 'make model year');
+
+        if (quotes.length === 0) {
+            return errorResponse(res, 'No quotes found', 404);
+        }
+
+        // Add comparison metrics
+        const comparison = {
+            quotes: quotes.map(q => ({
+                id: q._id,
+                mechanic: q.mechanicId,
+                service: q.serviceType,
+                status: q.status,
+                price: q.quotedPrice,
+                estimatedDuration: q.estimatedDuration,
+                validUntil: q.validUntil,
+                notes: q.mechanicNotes,
+                createdAt: q.createdAt
+            })),
+            summary: {
+                total: quotes.length,
+                quoted: quotes.filter(q => q.status === 'Quoted').length,
+                pending: quotes.filter(q => q.status === 'Pending').length,
+                lowestPrice: quotes
+                    .filter(q => q.quotedPrice && q.quotedPrice.amount)
+                    .sort((a, b) => a.quotedPrice.amount - b.quotedPrice.amount)[0]?.quotedPrice,
+                highestRating: Math.max(...quotes.map(q => q.mechanicId?.rating?.average || 0))
+            }
+        };
+
+        return successResponse(res, comparison, 'Quotes compared successfully');
+    } catch (error) {
+        next(error);
+    }
+};

@@ -1,6 +1,6 @@
 const Mechanic = require('../models/Mechanic');
 const Review = require('../models/Review');
-const { buildMechanicQuery } = require('../utils/searchHelper');
+const { buildMechanicQuery, buildSortOptions } = require('../utils/searchHelper');
 const { successResponse, errorResponse } = require('../utils/response');
 
 // Register a new mechanic profile
@@ -22,10 +22,16 @@ exports.registerMechanic = async (req, res, next) => {
     }
 };
 
-// Get all mechanics with filtering
+// Get all mechanics with filtering, sorting, and pagination
 exports.getAllMechanics = async (req, res, next) => {
     try {
         const query = buildMechanicQuery(req.query);
+        const sort = buildSortOptions(req.query);
+
+        // Pagination
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 20;
+        const skip = (page - 1) * limit;
 
         // Geo-spatial search if coordinates provided
         if (req.query.lat && req.query.lng) {
@@ -44,11 +50,24 @@ exports.getAllMechanics = async (req, res, next) => {
             };
         }
 
+        // Get total count for pagination
+        const total = await Mechanic.countDocuments(query);
+
         const mechanics = await Mechanic.find(query)
             .populate('userId', 'firstName lastName email')
-            .limit(50); // Limit results for performance
+            .sort(sort)
+            .skip(skip)
+            .limit(limit);
 
-        return successResponse(res, mechanics, 'Mechanics retrieved successfully');
+        return successResponse(res, {
+            mechanics,
+            pagination: {
+                page,
+                limit,
+                total,
+                pages: Math.ceil(total / limit)
+            }
+        }, 'Mechanics retrieved successfully');
     } catch (error) {
         next(error);
     }

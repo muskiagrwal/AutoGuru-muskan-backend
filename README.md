@@ -1,8 +1,20 @@
-# AutoGuru Backend API v2.0.0
+# AutoGuru Backend API v2.2.0
 
 > **Modular, Production-Ready Backend for AutoGuru Projects**
 
 A standalone Node.js/Express backend API with JWT authentication, MongoDB integration, and a clean modular architecture. Ready to use with any AutoGuru project.
+
+---
+
+## What's New in v2.2.0
+
+- **Advanced Mechanic Search** - Pagination, sorting, and enhanced filtering
+- **Enhanced Quote System** - Request multiple quotes and compare side-by-side
+- **Improved Reviews** - Helpful votes and photo support
+- **Notification System** - Complete in-app notification infrastructure
+- **Enhanced Models** - Recurring bookings, service tracking, and more
+
+**See [QUICK_REFERENCE.md](./QUICK_REFERENCE.md) for new features**
 
 ---
 

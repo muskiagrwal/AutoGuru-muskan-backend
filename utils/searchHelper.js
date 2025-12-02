@@ -46,6 +46,20 @@ const buildMechanicQuery = (queryParams) => {
         query.isVerified = true;
     }
 
+    // Filter by price range
+    if (queryParams.priceRange) {
+        query.priceRange = queryParams.priceRange;
+    }
+
+    // Filter by suburb/state
+    if (queryParams.suburb) {
+        query['address.suburb'] = { $regex: queryParams.suburb, $options: 'i' };
+    }
+
+    if (queryParams.state) {
+        query['address.state'] = queryParams.state;
+    }
+
     // Text search for business name or description
     if (queryParams.search) {
         query.$or = [
@@ -57,7 +71,33 @@ const buildMechanicQuery = (queryParams) => {
     return query;
 };
 
+/**
+ * Build sort object from query parameters
+ * @param {Object} queryParams 
+ * @returns {Object} MongoDB sort object
+ */
+const buildSortOptions = (queryParams) => {
+    const sort = {};
+
+    switch (queryParams.sortBy) {
+        case 'rating':
+            sort['rating.average'] = -1; // Highest rating first
+            break;
+        case 'responseTime':
+            sort.responseTime = 1; // Fastest response first
+            break;
+        case 'newest':
+            sort.createdAt = -1;
+            break;
+        default:
+            sort['rating.average'] = -1; // Default: sort by rating
+    }
+
+    return sort;
+};
+
 module.exports = {
     getDistanceFromLatLonInKm,
-    buildMechanicQuery
+    buildMechanicQuery,
+    buildSortOptions
 };

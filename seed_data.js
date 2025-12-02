@@ -15,7 +15,7 @@ const seedDatabase = async () => {
         }
 
         await mongoose.connect(MONGODB_URI);
-        console.log('✅ Connected to MongoDB');
+        console.log('Connected to MongoDB');
 
         // 1. Create a Test User (Customer)
         console.log('Creating Test Customer...');
@@ -119,7 +119,7 @@ const seedDatabase = async () => {
             isVerified: true
         });
 
-        console.log('\n🎉 Database Seeded Successfully!');
+        console.log('\nDatabase Seeded Successfully!');
         console.log('You should now see the following new collections in MongoDB Compass:');
         console.log('- mechanics');
         console.log('- vehicles');
@@ -128,7 +128,7 @@ const seedDatabase = async () => {
 
         process.exit(0);
     } catch (error) {
-        console.error('❌ Seeding Error:', error);
+        console.error('Seeding Error:', error);
         process.exit(1);
     }
 };

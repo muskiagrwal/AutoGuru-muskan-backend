@@ -119,3 +119,21 @@ const updateMechanicRating = async (mechanicId) => {
         });
     }
 };
+
+// Vote review as helpful
+exports.voteHelpful = async (req, res, next) => {
+    try {
+        const review = await Review.findById(req.params.id);
+        if (!review) {
+            return errorResponse(res, 'Review not found', 404);
+        }
+
+        // Increment helpful votes
+        review.helpfulVotes += 1;
+        await review.save();
+
+        return successResponse(res, review, 'Vote recorded successfully');
+    } catch (error) {
+        next(error);
+    }
+};

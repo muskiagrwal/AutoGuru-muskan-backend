@@ -7,13 +7,17 @@ const {
     getMechanicQuotes,
     respondToQuote,
     acceptQuote,
-    rejectQuote
+    rejectQuote,
+    requestMultipleQuotes,
+    compareQuotes
 } = require('../controllers/quote.controller');
 
 // All quote routes require authentication
 router.use(protect);
 
 router.post('/', requestQuote);
+router.post('/multiple', requestMultipleQuotes);
+router.get('/compare', compareQuotes);
 router.get('/user', getUserQuotes);
 router.get('/mechanic', getMechanicQuotes);
 router.put('/:id/respond', respondToQuote);

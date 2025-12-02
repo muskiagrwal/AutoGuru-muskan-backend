@@ -3,7 +3,7 @@
 async function testEndpoints() {
     const baseUrl = 'http://localhost:5000';
 
-    console.log('🧪 Testing AutoGuru Backend Endpoints...\n');
+    console.log('Testing AutoGuru Backend Endpoints...\n');
 
     try {
         // 1. Health Check
@@ -12,7 +12,7 @@ async function testEndpoints() {
         const healthData = await healthRes.json();
 
         if (healthData.success) {
-            console.log('✅ Server is running!');
+            console.log('Server is running!');
             console.log(`   Version: ${healthData.version}`);
             console.log('   New Endpoints detected:');
             console.log(`   - Mechanics: ${healthData.endpoints.mechanics}`);
@@ -20,7 +20,7 @@ async function testEndpoints() {
             console.log(`   - Reviews: ${healthData.endpoints.reviews}`);
             console.log(`   - Vehicles: ${healthData.endpoints.vehicles}`);
         } else {
-            console.error('❌ Server health check failed');
+            console.error('Server health check failed');
         }
 
         console.log('\n-----------------------------------\n');
@@ -31,14 +31,14 @@ async function testEndpoints() {
         const mechData = await mechRes.json();
 
         if (mechData.success) {
-            console.log('✅ Mechanics endpoint is accessible');
+            console.log('Mechanics endpoint is accessible');
             console.log(`   Count: ${mechData.data ? mechData.data.length : 0}`);
         } else {
-            console.error('❌ Failed to fetch mechanics:', mechData.message);
+            console.error('Failed to fetch mechanics:', mechData.message);
         }
 
     } catch (error) {
-        console.error('❌ Error connecting to server:', error.message);
+        console.error('Error connecting to server:', error.message);
         console.log('   Make sure the server is running on port 5000');
     }
 }

@@ -66,7 +66,20 @@ const mechanicSchema = new mongoose.Schema({
     rating: {
         average: { type: Number, default: 0 },
         count: { type: Number, default: 0 }
-    }
+    },
+    priceRange: {
+        type: String,
+        enum: ['budget', 'standard', 'premium'],
+        default: 'standard'
+    },
+    responseTime: {
+        type: Number, // Average response time in hours
+        default: 24
+    },
+    availableTimeSlots: [{
+        day: String, // e.g., 'monday', 'tuesday'
+        slots: [String] // e.g., ['09:00', '10:00', '11:00']
+    }]
 }, {
     timestamps: true
 });
