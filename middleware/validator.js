@@ -1,57 +1,22 @@
+const { validationResult } = require('express-validator');
+
 /**
  * Request Validation Middleware
  * Provides utilities for validating request data
  */
 
 /**
- * Validate required fields in request body
- * @param {Array<string>} fields - Array of required field names
- * @returns {Function} Express middleware function
+ * Middleware to check validation results from express-validator
  */
-const validateRequiredFields = (fields) => {
-    return (req, res, next) => {
-        const missingFields = [];
-
-        for (const field of fields) {
-            if (!req.body[field]) {
-                missingFields.push(field);
-            }
-        }
-
-        if (missingFields.length > 0) {
-            return res.status(400).json({
-                success: false,
-                message: `Missing required fields: ${missingFields.join(', ')}`
-            });
-        }
-
-        next();
-    };
-};
-
-/**
- * Validate email format
- * @param {string} email - Email to validate
- * @returns {boolean} True if valid email format
- */
-const isValidEmail = (email) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-};
-
-/**
- * Middleware to validate email in request body
- */
-const validateEmail = (req, res, next) => {
-    const { email } = req.body;
-
-    if (email && !isValidEmail(email)) {
+const validate = (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
         return res.status(400).json({
             success: false,
-            message: 'Invalid email format'
+            message: errors.array()[0].msg, // Return the first error message
+            errors: errors.array()
         });
     }
-
     next();
 };
 
@@ -72,8 +37,7 @@ const sanitizeFields = (fields) => {
 };
 
 module.exports = {
-    validateRequiredFields,
-    validateEmail,
-    isValidEmail,
+    validate,
     sanitizeFields
 };
+

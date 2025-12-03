@@ -1,21 +1,18 @@
 const express = require('express');
 const router = express.Router();
 const homeServiceController = require('../controllers/homeService.controller');
-const { validateRequiredFields, sanitizeFields } = require('../middleware/validator');
+const { validate } = require('../middleware/validator');
+const { homeServiceSchema } = require('../middleware/validationSchemas');
 
 /**
  * Home Service Routes
  * Base path: /api/home-service
  */
 
-// Create new home service booking
-router.post(
-    '/',
-    sanitizeFields(['name', 'email', 'address', 'serviceType', 'vehicleName', 'vehicleType', 'vehicleModel']),
-    validateRequiredFields(['name', 'email', 'phone', 'address', 'serviceType', 'vehicleName', 'vehicleType', 'vehicleModel', 'vehicleYear']),
-    homeServiceController.createHomeService
-);
+// Public routes
+router.post('/', homeServiceSchema, validate, homeServiceController.createHomeService);
 
+// Admin routes (protected) - To be implemented
 // Get all home service bookings
 router.get('/', homeServiceController.getAllHomeServices);
 

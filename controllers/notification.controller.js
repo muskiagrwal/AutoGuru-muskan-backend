@@ -1,5 +1,6 @@
 const Notification = require('../models/Notification');
 const { successResponse, errorResponse } = require('../utils/response');
+const socketUtil = require('../utils/socket');
 
 // Get all notifications for logged-in user
 exports.getUserNotifications = async (req, res, next) => {
@@ -98,8 +99,6 @@ exports.deleteNotification = async (req, res, next) => {
     }
 };
 
-const socketUtil = require('../utils/socket');
-
 // Create notification (internal use by other controllers)
 exports.createNotification = async (userId, type, title, message, relatedId = null, relatedModel = null, priority = 'medium') => {
     try {
@@ -127,12 +126,4 @@ exports.createNotification = async (userId, type, title, message, relatedId = nu
         console.error('Error creating notification:', error);
         return null;
     }
-};
-
-module.exports = {
-    getUserNotifications,
-    markAsRead,
-    markAllAsRead,
-    deleteNotification,
-    createNotification
 };

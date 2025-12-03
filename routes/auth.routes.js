@@ -2,35 +2,27 @@ const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/auth.controller');
 const { authenticateToken } = require('../middleware/auth');
-const { validateRequiredFields, validateEmail, sanitizeFields } = require('../middleware/validator');
+const { validate, sanitizeFields } = require('../middleware/validator');
+const { registerSchema, loginSchema, forgotPasswordSchema, resetPasswordSchema } = require('../middleware/validationSchemas');
 
 /**
  * Authentication Routes
  * Base path: /api/auth
  */
 
-// Public routes
-router.post(
-    '/signup',
-    sanitizeFields(['firstName', 'lastName', 'email']),
-    validateEmail,
-    validateRequiredFields(['firstName', 'lastName', 'email', 'password']),
-    authController.signup
-);
+// Public Routes
+router.post('/signup', registerSchema, validate, authController.signup);
+router.post('/login', loginSchema, validate, authController.login);
 
-router.post(
-    '/login',
-    sanitizeFields(['email']),
-    validateEmail,
-    validateRequiredFields(['email', 'password']),
-    authController.login
-);
-
-// Protected routes (require authentication)
+// Protected Routes
 router.post('/verify', authenticateToken, authController.verify);
 router.get('/profile', authenticateToken, authController.getProfile);
 
 // Debug route (remove in production)
-router.get('/users', authController.getAllUsers);
+router.get('/users', authenticateToken, authController.getAllUsers); // Debug only
+
+// Password Reset
+router.post('/forgotpassword', forgotPasswordSchema, validate, authController.forgotPassword);
+router.put('/resetpassword/:resetToken', resetPasswordSchema, validate, authController.resetPassword);
 
 module.exports = router;

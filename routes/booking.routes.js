@@ -2,7 +2,8 @@ const express = require('express');
 const router = express.Router();
 const bookingController = require('../controllers/booking.controller');
 const { authenticateToken } = require('../middleware/auth');
-const { validateRequiredFields, sanitizeFields } = require('../middleware/validator');
+const { validate, sanitizeFields } = require('../middleware/validator');
+const { bookingSchema } = require('../middleware/validationSchemas');
 
 /**
  * Booking Routes
@@ -10,17 +11,19 @@ const { validateRequiredFields, sanitizeFields } = require('../middleware/valida
  * All routes require authentication
  */
 
+// All routes require authentication
+router.use(authenticateToken);
+
 // Create new booking
 router.post(
     '/',
-    authenticateToken,
-    sanitizeFields(['serviceType', 'vehicleMake', 'vehicleModel', 'location', 'notes']),
-    validateRequiredFields(['serviceType', 'vehicleMake', 'vehicleModel', 'location', 'date', 'time', 'price']),
+    bookingSchema,
+    validate,
     bookingController.createBooking
 );
 
 // Get all user bookings
-router.get('/', authenticateToken, bookingController.getUserBookings);
+router.get('/', bookingController.getUserBookings);
 
 // Get specific booking by ID
 router.get('/:id', authenticateToken, bookingController.getBookingById);
