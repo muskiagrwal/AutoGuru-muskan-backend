@@ -8,8 +8,8 @@ const logger = require('./logger');
 
 // Create transporter
 const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'smtp.gmail.com',
-    port: process.env.SMTP_PORT || 587,
+    host: process.env.SMTP_HOST,
+    port: process.env.SMTP_PORT,
     secure: false, // true for 465, false for other ports
     auth: {
         user: process.env.SMTP_EMAIL,

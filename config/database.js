@@ -7,7 +7,7 @@ const mongoose = require('mongoose');
 
 const connectDatabase = async () => {
     try {
-        const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://muskan:muskan%402002@autoguru.3du9w43.mongodb.net/';
+        const MONGODB_URI = process.env.MONGODB_URI;
 
         await mongoose.connect(MONGODB_URI, {
             // Mongoose 6+ doesn't need these options, but keeping for compatibility
