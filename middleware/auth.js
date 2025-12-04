@@ -52,9 +52,24 @@ const optionalAuth = (req, res, next) => {
     next();
 };
 
+
+ // Role-based Authorization Example-> authorizeRoles('admin', 'supplier', 'user')
+const authorizeRoles = (...allowedRoles) => {
+    return (req, res, next) => {
+        if (!req.user || !allowedRoles.includes(req.user.role)) {
+            return res.status(403).json({
+                success: false,
+                message: 'You are not authorized to perform this action'
+            });
+        }
+        next();
+    };
+};
+
 module.exports = {
     authenticateToken,
     optionalAuth,
+    authorizeRoles,
     // Alias for consistency with new routes
     protect: authenticateToken
 };

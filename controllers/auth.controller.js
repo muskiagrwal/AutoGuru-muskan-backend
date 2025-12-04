@@ -15,7 +15,7 @@ const logger = require('../utils/logger');
  * @route POST /api/auth/signup
  */
 const signup = async (req, res) => {
-    const { firstName, lastName, email, password } = req.body;
+    const { firstName, lastName, email, password, role } = req.body;
 
     // Validation
     if (!firstName || !lastName || !email || !password) {
@@ -43,7 +43,8 @@ const signup = async (req, res) => {
             firstName,
             lastName,
             email: email.toLowerCase(),
-            password: hashedPassword
+            password: hashedPassword,
+             role: role || "user" 
         });
 
         // Save to database
@@ -63,6 +64,7 @@ const signup = async (req, res) => {
                 firstName: newUser.firstName,
                 lastName: newUser.lastName,
                 email: newUser.email,
+                 role: newUser.role,
                 createdAt: newUser.createdAt
             },
             token: token
@@ -126,6 +128,7 @@ const login = async (req, res) => {
                 firstName: user.firstName,
                 lastName: user.lastName,
                 email: user.email,
+                 role: user.role,
                 createdAt: user.createdAt
             },
             token: token
