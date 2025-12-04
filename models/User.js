@@ -28,7 +28,13 @@ const userSchema = new mongoose.Schema({
         default: 'user'
     },
     resetPasswordToken: String,
-    resetPasswordExpire: Date
+    resetPasswordExpire: Date,
+    otp: String,
+    otpExpire: Date,
+    otpPurpose: {
+        type: String,
+        enum: ['verification', 'password-reset', 'login']
+    }
 }, {
     timestamps: true // Automatically adds createdAt and updatedAt
 });
