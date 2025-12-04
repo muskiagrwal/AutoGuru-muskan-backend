@@ -19,6 +19,7 @@ const reviewRoutes = require('./routes/review.routes');
 const vehicleRoutes = require('./routes/vehicle.routes');
 const notificationRoutes = require('./routes/notification.routes');
 const uploadRoutes = require('./routes/upload.routes');
+const brandRoutes = require('./routes/vehicleBrand.routes')
 
 // Import middleware
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
@@ -89,6 +90,8 @@ app.use('/api/mechanics', mechanicRoutes);
 app.use('/api/quotes', quoteRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/vehicles', vehicleRoutes);
+app.use('/api/brands', brandRoutes);
+
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/uploads', uploadRoutes);
 
