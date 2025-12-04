@@ -34,7 +34,7 @@ const { protect } = require('../middleware/auth');
 const upload = require('../middleware/upload');
 
 
-router.use(protect);
+// router.use(protect);
 
 
 //vehicle-brands
