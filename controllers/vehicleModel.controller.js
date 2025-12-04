@@ -41,8 +41,8 @@ exports.createModel = async (req, res) => {
             imageUrl: finalImageUrl, 
             description: description || '',
             rating: rating || 4.5,
-            quotesProvided: quotesProvided || false,
-            expertMechanics: expertMechanics || 0
+            quotesProvided: quotesProvided || '',
+            expertMechanics: expertMechanics || ''
         });
 
         await model.populate('brand', 'name');
