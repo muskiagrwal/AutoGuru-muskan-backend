@@ -31,6 +31,7 @@ const {
     deleteInterval
 } = require('../controllers/serviceInterval.controller');
 const { protect } = require('../middleware/auth');
+const upload = require('../middleware/upload');
 
 
 router.use(protect);
@@ -46,11 +47,12 @@ router.delete('/vehicle-brands/:id', deleteBrand);
 
 
 //vehicle-models
-router.post('/vehicle-models', createModel);
+router.post('/vehicle-models', upload.single('image'), createModel);
 router.get('/vehicle-models', getAllModels);
 router.get('/vehicle-models/brand/:brandId', getModelsByBrand);
 router.get('/vehicle-models/:id', getModelById);
-router.put('/vehicle-models/:id', updateModel);
+router.put('/vehicle-models/:id',upload.single('image'), updateModel);
+
 router.delete('/vehicle-models/:id', deleteModel);
 
 

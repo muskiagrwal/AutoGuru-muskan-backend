@@ -7,7 +7,8 @@ exports.uploadToCloudinary = (buffer) => {
         const stream = cloudinary.uploader.upload_stream(
             {
                 folder: 'autoguru/vehicle_models', 
-                allowed_formats: ['jpg', 'png', 'jpeg', 'webp']
+                allowed_formats: ['jpg', 'png', 'jpeg', 'webp'],
+                resource_type: 'auto'
             },
             (error, result) => {
                 if (error) return reject(error);
