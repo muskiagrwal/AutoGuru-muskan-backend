@@ -48,6 +48,9 @@ exports.createModel = async (req, res) => {
             expertMechanics: expertMechanics || ''
         });
 
+        //INCREMENT count in parent model(vehicle) 
+        await VehicleBrand.findByIdAndUpdate(brand, { $inc: { count: 1 } });
+
         await model.populate('brand', 'name');
 
         response.sendCreated(res, 'Model created successfully', { model });
@@ -149,16 +152,22 @@ exports.updateModel = async (req, res) => {
         const { brand, name, imageUrl, description, rating, quotesProvided, expertMechanics } = req.body;
         
         const model = await VehicleModel.findById(req.params.id);
-        
         if (!model) {
             return response.sendNotFound(res, 'Model not found');
         }
 
-        // Validate brand exists if being updated
+        // HANDLE BRAND COUNT CHANGE
         if (brand) {
             const brandExists = await VehicleBrand.findById(brand);
             if (!brandExists) {
                 return response.sendError(res, 404, 'Brand not found');
+            }
+
+            if (brand !== model.brand.toString()) {
+                // Old Brand Count -1
+                await VehicleBrand.findByIdAndUpdate(model.brand, { $inc: { count: -1 } });
+                // New Brand Count +1
+                await VehicleBrand.findByIdAndUpdate(brand, { $inc: { count: 1 } });
             }
         }
 
@@ -175,9 +184,8 @@ exports.updateModel = async (req, res) => {
         }
 
         // Handle Image Logic 
-        let finalImageUrl = model.imageUrl; // Default to existing image
+        let finalImageUrl = model.imageUrl; 
 
-        // Case A: User uploaded a new file
         if (req.file) {
             try {
                 const uploadResult = await uploadToCloudinary(req.file.buffer);
@@ -186,13 +194,11 @@ exports.updateModel = async (req, res) => {
                 console.error('Cloudinary update upload error:', uploadError);
                 return response.sendError(res, 500, 'Image upload failed');
             }
-        } 
-        // Case B: User sent a text URL (and no file)
-        else if (imageUrl) {
+        } else if (imageUrl) {
             finalImageUrl = imageUrl;
         }
 
-        //  Update fields
+        // Update fields
         model.brand = brand || model.brand;
         model.name = name || model.name;
         model.imageUrl = finalImageUrl; 
@@ -201,12 +207,9 @@ exports.updateModel = async (req, res) => {
         model.quotesProvided = quotesProvided !== undefined ? quotesProvided : model.quotesProvided;
         model.expertMechanics = expertMechanics !== undefined ? expertMechanics : model.expertMechanics;
 
-         // Update service intervals if provided
+        // Update service intervals logic 
         if (req.body.serviceIntervals && Array.isArray(req.body.serviceIntervals)) {
-            // Delete existing intervals
             await ServiceInterval.deleteMany({ vehicleModel: model._id });
-
-            // Create new intervals
             const intervalPromises = req.body.serviceIntervals.map(interval => {
                 return ServiceInterval.create({
                     vehicleModel: model._id,
@@ -215,7 +218,6 @@ exports.updateModel = async (req, res) => {
                     price: interval.price
                 });
             });
-
             await Promise.all(intervalPromises);
         }
         
@@ -239,8 +241,14 @@ exports.deleteModel = async (req, res) => {
             return response.sendNotFound(res, 'Model not found');
         }
 
+        const brandId = model.brand; 
 
         await model.deleteOne();
+
+        // DECREMENT BRAND COUNT
+        if (brandId) {
+            await VehicleBrand.findByIdAndUpdate(brandId, { $inc: { count: -1 } });
+        }
 
         response.sendSuccess(res, 200, 'Model deleted successfully');
     } catch (error) {

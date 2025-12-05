@@ -6,43 +6,47 @@ const VehicleBrandSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
-      index: true
+      index: true,
     },
 
     description: {
       type: String,
-      default: ""
+      default: "",
     },
 
     facts: {
       type: String,
-      default: ""
+      default: "",
     },
 
     logbookCost: {
       type: Number,
-      default: 0
+      default: 0,
     },
 
     basicCost: {
       type: Number,
-      default: 0
+      default: 0,
     },
     slug: {
       type: String,
-      unique: true
-    }
+      unique: true,
+    },
+    count: {
+      type: Number,
+      default: 0,
+    },
   },
   { timestamps: true }
 );
 
 // Pre-save hook to generate slug from name
-VehicleBrandSchema.pre('save', function (next) {
-  if (this.isModified('name') || this.isNew) {
+VehicleBrandSchema.pre("save", function (next) {
+  if (this.isModified("name") || this.isNew) {
     this.slug = this.name
       .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/(^-|-$)+/g, '');
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)+/g, "");
   }
   next();
 });
@@ -50,6 +54,5 @@ VehicleBrandSchema.pre('save', function (next) {
 //index for brand name
 VehicleBrandSchema.index({ name: 1 }, { unique: true });
 VehicleBrandSchema.index({ slug: 1 }, { unique: true });
-
 
 module.exports = mongoose.model("VehicleBrand", VehicleBrandSchema);
