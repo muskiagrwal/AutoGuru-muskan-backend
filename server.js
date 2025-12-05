@@ -21,6 +21,7 @@ const notificationRoutes = require('./routes/notification.routes');
 const uploadRoutes = require('./routes/upload.routes');
 const brandRoutes = require('./routes/vehicleBrand.routes');
 const serviceRoutes = require('./routes/service.routes');
+const b2bRoutes = require('./routes/b2b.routes');
 // Import middleware
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
 
@@ -75,7 +76,8 @@ app.get('/', (req, res) => {
             reviews: '/api/reviews',
             vehicles: '/api/vehicles',
             notifications: '/api/notifications',
-            uploads: '/api/uploads'
+            uploads: '/api/uploads',
+            b2b: '/api/b2b'
         },
         documentation: 'See README.md for full API documentation'
     });
@@ -94,6 +96,7 @@ app.use('/api/brands', brandRoutes);
 app.use('/api/services', serviceRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/uploads', uploadRoutes);
+app.use('/api/b2b', b2bRoutes);
 
 // 404 Handler - Must be after all routes
 app.use(notFoundHandler);

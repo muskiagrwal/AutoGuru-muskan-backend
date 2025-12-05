@@ -3,7 +3,7 @@ const VehicleModel = require('../models/VehicleModel');
 const response = require('../utils/response');
 
 
-// POST → Create new service interval
+// POST - Create new service interval
 exports.createInterval = async (req, res) => {
     try {
         const { vehicleModel, distance, timeInMonths, price } = req.body;
@@ -47,7 +47,7 @@ exports.createInterval = async (req, res) => {
 };
 
 
-// GET → Fetch all service intervals
+// GET - Fetch all service intervals
 exports.getAllIntervals = async (req, res) => {
     try {
         const { vehicleModel, minDistance, maxDistance } = req.query;
@@ -82,7 +82,7 @@ exports.getAllIntervals = async (req, res) => {
 };
 
 
-//GET → Get service intervals by vehicle model
+//GET - Get service intervals by vehicle model
 exports.getIntervalsByModel = async (req, res) => {
     try {
         const { modelId } = req.params;
@@ -112,7 +112,7 @@ exports.getIntervalsByModel = async (req, res) => {
     }
 };
 
-//GET → Get single service interval by ID
+//GET - Get single service interval by ID
 exports.getIntervalById = async (req, res) => {
     try {
         const interval = await ServiceInterval.findById(req.params.id)
@@ -133,7 +133,7 @@ exports.getIntervalById = async (req, res) => {
     }
 };
 
-//PUT → Update service interval
+//PUT - Update service interval
 exports.updateInterval = async (req, res) => {
     try {
         const { vehicleModel, distance, timeInMonths, price } = req.body;
@@ -188,7 +188,7 @@ exports.updateInterval = async (req, res) => {
     }
 };
 
-//DELETE → Remove service interval
+//DELETE - Remove service interval
 exports.deleteInterval = async (req, res) => {
     try {
         const interval = await ServiceInterval.findById(req.params.id);

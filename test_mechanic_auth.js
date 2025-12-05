@@ -48,7 +48,7 @@ async function testMechanicSignup() {
         const response = await axios.post(`${BASE_URL}/mechanic/signup`, mechanicData);
 
         if (response.data.success) {
-            log('✓ Mechanic signup successful!', 'green');
+            log('PASS: Mechanic signup successful!', 'green');
             log(`User ID: ${response.data.user.id}`, 'green');
             log(`Mechanic ID: ${response.data.mechanic.id}`, 'green');
             log(`Business Name: ${response.data.mechanic.businessName}`, 'green');
@@ -58,14 +58,14 @@ async function testMechanicSignup() {
         }
     } catch (error) {
         if (error.response) {
-            log(`✗ Signup failed: ${error.response.data.message}`, 'red');
+            log(`FAIL: Signup failed: ${error.response.data.message}`, 'red');
             if (error.response.data.errors) {
                 error.response.data.errors.forEach(err => {
                     log(`  - ${err.msg}`, 'yellow');
                 });
             }
         } else {
-            log(`✗ Error: ${error.message}`, 'red');
+            log(`FAIL: Error: ${error.message}`, 'red');
         }
         return null;
     }
@@ -81,7 +81,7 @@ async function testMechanicLogin() {
         });
 
         if (response.data.success) {
-            log('✓ Mechanic login successful!', 'green');
+            log('PASS: Mechanic login successful!', 'green');
             log(`User ID: ${response.data.user.id}`, 'green');
             log(`Email: ${response.data.user.email}`, 'green');
             log(`Role: ${response.data.user.role}`, 'green');
@@ -93,9 +93,9 @@ async function testMechanicLogin() {
         }
     } catch (error) {
         if (error.response) {
-            log(`✗ Login failed: ${error.response.data.message}`, 'red');
+            log(`FAIL: Login failed: ${error.response.data.message}`, 'red');
         } else {
-            log(`✗ Error: ${error.message}`, 'red');
+            log(`FAIL: Error: ${error.message}`, 'red');
         }
         return null;
     }
@@ -111,9 +111,9 @@ async function testInvalidLogin() {
         });
     } catch (error) {
         if (error.response && error.response.status === 401) {
-            log('✓ Invalid login correctly rejected', 'green');
+            log('PASS: Invalid login correctly rejected', 'green');
         } else {
-            log(`✗ Unexpected error: ${error.message}`, 'red');
+            log(`FAIL: Unexpected error: ${error.message}`, 'red');
         }
     }
 }
@@ -125,18 +125,18 @@ async function testDuplicateSignup() {
         await axios.post(`${BASE_URL}/mechanic/signup`, mechanicData);
     } catch (error) {
         if (error.response && error.response.status === 400) {
-            log('✓ Duplicate signup correctly rejected', 'green');
+            log('PASS: Duplicate signup correctly rejected', 'green');
             log(`Message: ${error.response.data.message}`, 'yellow');
         } else {
-            log(`✗ Unexpected error: ${error.message}`, 'red');
+            log(`FAIL: Unexpected error: ${error.message}`, 'red');
         }
     }
 }
 
 async function runTests() {
-    log('\n╔════════════════════════════════════════╗', 'blue');
-    log('║  Mechanic Authentication Test Suite   ║', 'blue');
-    log('╚════════════════════════════════════════╝', 'blue');
+    log('\n========================================', 'blue');
+    log('  Mechanic Authentication Test Suite  ', 'blue');
+    log('========================================', 'blue');
 
     // Test 1: Mechanic Signup
     const signupResult = await testMechanicSignup();
@@ -152,15 +152,15 @@ async function runTests() {
         await testDuplicateSignup();
     }
 
-    log('\n╔════════════════════════════════════════╗', 'blue');
-    log('║         Tests Completed!               ║', 'blue');
-    log('╚════════════════════════════════════════╝', 'blue');
+    log('\n========================================', 'blue');
+    log('         Tests Completed!             ', 'blue');
+    log('========================================', 'blue');
     log('\nNote: You may need to manually delete the test user from MongoDB', 'yellow');
     log('to run these tests again.\n', 'yellow');
 }
 
 // Run the tests
 runTests().catch(error => {
-    log(`\n✗ Fatal error: ${error.message}`, 'red');
+    log(`\nFATAL ERROR: ${error.message}`, 'red');
     process.exit(1);
 });

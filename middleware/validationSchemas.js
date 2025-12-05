@@ -62,6 +62,15 @@ const mechanicSignupSchema = [
     check('phone', 'Phone number is required').not().isEmpty()
 ];
 
+const b2bRegistrationSchema = [
+    check('businessName', 'Business name is required').not().isEmpty().isLength({ min: 2 }),
+    check('abn', 'ABN is required').not().isEmpty(),
+    check('contactName', 'Contact name is required').not().isEmpty(),
+    check('email', 'Please include a valid email').isEmail(),
+    check('phone', 'Phone number is required').not().isEmpty(),
+    check('address', 'Business address is required').not().isEmpty()
+];
+
 module.exports = {
     registerSchema,
     loginSchema,
@@ -70,5 +79,6 @@ module.exports = {
     bookingSchema,
     contactSchema,
     homeServiceSchema,
-    mechanicSignupSchema
+    mechanicSignupSchema,
+    b2bRegistrationSchema
 };

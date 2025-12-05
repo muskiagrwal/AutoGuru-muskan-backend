@@ -33,13 +33,13 @@ const createDummyData = async () => {
             priority: 'high'
         });
 
-        console.log('✅ Notification created successfully!');
-        console.log('🆔 Notification ID:', notification._id);
-        console.log('\n🎉 NOW GO CHECK MONGODB COMPASS!');
+        console.log('SUCCESS: Notification created successfully!');
+        console.log('Notification ID:', notification._id);
+        console.log('\nNOW GO CHECK MONGODB COMPASS!');
         console.log('You should see a new "notifications" collection.');
 
     } catch (error) {
-        console.error('❌ Error:', error);
+        console.error('ERROR:', error);
     } finally {
         await mongoose.connection.close();
         process.exit();

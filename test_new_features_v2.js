@@ -28,10 +28,10 @@ const testFeatures = async () => {
             });
         } catch (error) {
             if (error.response && error.response.status === 400) {
-                console.log('✅ Validation passed: Rejected invalid data correctly.');
+                console.log('PASS: Validation passed: Rejected invalid data correctly.');
                 console.log('   Error:', error.response.data.message);
             } else {
-                console.error('❌ Validation failed: Unexpected response', error.message);
+                console.error('FAIL: Validation failed: Unexpected response', error.message);
             }
         }
 
@@ -47,14 +47,14 @@ const testFeatures = async () => {
             password: testPassword
         });
         authToken = signupRes.data.token;
-        console.log('✅ User created successfully:', testEmail);
+        console.log('SUCCESS: User created successfully:', testEmail);
 
         // 3. Test Forgot Password
         console.log('\n3. Testing Forgot Password...');
         const forgotRes = await axios.post(`${API_URL}/auth/forgotpassword`, {
             email: testEmail
         });
-        console.log('✅ Forgot Password request successful:', forgotRes.data.message);
+        console.log('SUCCESS: Forgot Password request successful:', forgotRes.data.message);
 
         // 4. Retrieve Reset Token from DB (since we can't read the email)
         const user = await User.findOne({ email: testEmail });
@@ -78,7 +78,7 @@ const testFeatures = async () => {
         const resetRes = await axios.put(`${API_URL}/auth/resetpassword/${rawToken}`, {
             password: newPassword
         });
-        console.log('✅ Password Reset successful:', resetRes.data.message);
+        console.log('SUCCESS: Password Reset successful:', resetRes.data.message);
 
         // 6. Login with New Password
         console.log('\n6. Verifying Login with New Password...');
@@ -86,12 +86,12 @@ const testFeatures = async () => {
             email: testEmail,
             password: newPassword
         });
-        console.log('✅ Login successful with new password!');
+        console.log('SUCCESS: Login successful with new password!');
 
         console.log('\n--- VERIFICATION COMPLETE: ALL TESTS PASSED ---');
 
     } catch (error) {
-        console.error('\n❌ VERIFICATION FAILED:', error.message);
+        console.error('\nVERIFICATION FAILED:', error.message);
         if (error.response) {
             console.error('   Response:', error.response.data);
         }
