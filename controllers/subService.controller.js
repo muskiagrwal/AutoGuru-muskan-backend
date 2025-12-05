@@ -113,10 +113,23 @@ exports.getSubServicesByServiceId = async (req, res) => {
 // GET -> Get Single SubService
 exports.getSubServiceById = async (req, res) => {
   try {
-    const subService = await SubService.findById(req.params.id).populate(
-      "service",
-      "name description"
-    );
+    const { id } = req.params;
+    let subService;
+
+    // Check if id is a valid ObjectId
+    if (id.match(/^[0-9a-fA-F]{24}$/)) {
+      subService = await SubService.findById(id).populate(
+        "service",
+        "name description"
+      );
+    } else {
+      // If not ObjectId, try finding by slug
+      // Note: slugs are usually unique, but ensure your schema enforces it
+      subService = await SubService.findOne({ slug: id }).populate(
+        "service",
+        "name description"
+      );
+    }
 
     if (!subService) {
       return response.sendNotFound(res, "SubService not found");
