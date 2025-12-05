@@ -29,9 +29,13 @@ const ServiceSchema = new mongoose.Schema(
       default: true,
     },
 
-    count:{
-      type:Number,
-       default: 0,
+    features: [{
+      type: String
+    }],
+
+    count: {
+      type: Number,
+      default: 0,
     }
   },
   { timestamps: true }

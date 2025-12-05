@@ -50,7 +50,7 @@ exports.createService = async (req, res) => {
 // GET -> Get All Services
 exports.getAllServices = async (req, res) => {
   try {
-    const { search, isActive } = req.query;
+    const { search, isActive, includeSubServices } = req.query;
 
     let filter = {};
 
@@ -64,7 +64,23 @@ exports.getAllServices = async (req, res) => {
       filter.name = { $regex: search, $options: "i" };
     }
 
-    const services = await Service.find(filter).sort({ name: 1 });
+    let services;
+    if (includeSubServices === 'true') {
+      services = await Service.aggregate([
+        { $match: filter },
+        {
+          $lookup: {
+            from: 'subservices',
+            localField: '_id',
+            foreignField: 'service',
+            as: 'subServices'
+          }
+        },
+        { $sort: { name: 1 } }
+      ]);
+    } else {
+      services = await Service.find(filter).sort({ name: 1 });
+    }
 
     response.sendSuccess(res, 200, "Services fetched successfully", {
       services,
@@ -79,7 +95,16 @@ exports.getAllServices = async (req, res) => {
 // GET -> Get Single Service (with SubServices)
 exports.getServiceById = async (req, res) => {
   try {
-    const service = await Service.findById(req.params.id);
+    const { id } = req.params;
+    let service;
+
+    // Check if id is a valid ObjectId
+    if (id.match(/^[0-9a-fA-F]{24}$/)) {
+      service = await Service.findById(id);
+    } else {
+      // If not ObjectId, try finding by slug
+      service = await Service.findOne({ slug: id });
+    }
 
     if (!service) {
       return response.sendNotFound(res, "Service not found");
