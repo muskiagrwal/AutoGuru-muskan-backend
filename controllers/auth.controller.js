@@ -44,14 +44,14 @@ const signup = async (req, res) => {
             lastName,
             email: email.toLowerCase(),
             password: hashedPassword,
-             role: role || "user" 
+            role: role || "user"
         });
 
         // Save to database
         await newUser.save();
 
         // Generate JWT token
-        const token = generateToken(newUser._id.toString(), newUser.email);
+        const token = generateToken(newUser._id.toString(), newUser.email, newUser.role);
 
         logger.success(`New user registered: ${newUser.email}`);
 
@@ -64,7 +64,7 @@ const signup = async (req, res) => {
                 firstName: newUser.firstName,
                 lastName: newUser.lastName,
                 email: newUser.email,
-                 role: newUser.role,
+                role: newUser.role,
                 createdAt: newUser.createdAt
             },
             token: token
@@ -115,7 +115,7 @@ const login = async (req, res) => {
         }
 
         // Generate JWT token
-        const token = generateToken(user._id.toString(), user.email);
+        const token = generateToken(user._id.toString(), user.email, user.role);
 
         logger.success(`User logged in: ${user.email}`);
 
@@ -128,7 +128,7 @@ const login = async (req, res) => {
                 firstName: user.firstName,
                 lastName: user.lastName,
                 email: user.email,
-                 role: user.role,
+                role: user.role,
                 createdAt: user.createdAt
             },
             token: token
@@ -348,6 +348,328 @@ const resetPassword = async (req, res) => {
     }
 };
 
+/**
+ * Logout
+ * @route POST /api/auth/logout
+ */
+const logout = async (req, res) => {
+    try {
+        // In a stateless JWT system, logout is handled client-side by removing the token
+        // But we can log the event for security monitoring
+        logger.info(`User logged out: ${req.user.email}`);
+
+        res.json({
+            success: true,
+            message: 'Logged out successfully'
+        });
+    } catch (error) {
+        logger.error('Logout error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error during logout'
+        });
+    }
+};
+
+/**
+ * Generate and Send OTP
+ * Helper function to generate OTP and save to user
+ */
+const generateAndSendOtp = async (user, purpose = 'verification') => {
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    // Set OTP with 10 minute expiration
+    user.otp = otp;
+    user.otpExpire = Date.now() + 10 * 60 * 1000;
+    user.otpPurpose = purpose;
+    await user.save();
+
+    // Send OTP via email
+    const message = `
+        <h1>Your OTP Code</h1>
+        <p>Your OTP code for ${purpose} is:</p>
+        <h2>${otp}</h2>
+        <p>This code will expire in 10 minutes.</p>
+    `;
+
+    await sendEmail({
+        to: user.email,
+        subject: `Your OTP Code - ${purpose}`,
+        text: `Your OTP code is: ${otp}. Valid for 10 minutes.`,
+        html: message
+    });
+
+    return otp;
+};
+
+/**
+ * Verify OTP
+ * @route POST /api/auth/verify-otp
+ */
+const verifyOtp = async (req, res) => {
+    const { email, otp } = req.body;
+
+    if (!email || !otp) {
+        return res.status(400).json({
+            success: false,
+            message: 'Email and OTP are required'
+        });
+    }
+
+    try {
+        const user = await User.findOne({
+            email: email.toLowerCase(),
+            otp: otp,
+            otpExpire: { $gt: Date.now() }
+        });
+
+        if (!user) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid or expired OTP'
+            });
+        }
+
+        // Clear OTP after successful verification
+        user.otp = undefined;
+        user.otpExpire = undefined;
+        user.otpPurpose = undefined;
+        await user.save();
+
+        logger.success(`OTP verified for user: ${user.email}`);
+
+        res.json({
+            success: true,
+            message: 'OTP verified successfully',
+            user: {
+                id: user._id,
+                email: user.email,
+                firstName: user.firstName,
+                lastName: user.lastName
+            }
+        });
+    } catch (error) {
+        logger.error('Verify OTP error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error verifying OTP'
+        });
+    }
+};
+
+/**
+ * Resend OTP
+ * @route POST /api/auth/resend-otp
+ */
+const resendOtp = async (req, res) => {
+    const { email, purpose } = req.body;
+
+    if (!email) {
+        return res.status(400).json({
+            success: false,
+            message: 'Email is required'
+        });
+    }
+
+    try {
+        const user = await User.findOne({ email: email.toLowerCase() });
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        // Generate and send new OTP
+        await generateAndSendOtp(user, purpose || 'verification');
+
+        logger.success(`OTP resent to user: ${user.email}`);
+
+        res.json({
+            success: true,
+            message: 'OTP sent successfully'
+        });
+    } catch (error) {
+        logger.error('Resend OTP error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error sending OTP'
+        });
+    }
+};
+
+/**
+ * Update Profile
+ * @route POST /api/auth/update-profile
+ */
+const updateProfile = async (req, res) => {
+    try {
+        const { firstName, lastName } = req.body;
+
+        const user = await User.findById(req.user.userId);
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        // Update fields
+        if (firstName) user.firstName = firstName;
+        if (lastName) user.lastName = lastName;
+
+        await user.save();
+
+        logger.success(`Profile updated for user: ${user.email}`);
+
+        res.json({
+            success: true,
+            message: 'Profile updated successfully',
+            user: {
+                id: user._id,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                email: user.email
+            }
+        });
+    } catch (error) {
+        logger.error('Update profile error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error updating profile'
+        });
+    }
+};
+
+/**
+ * Update Email
+ * @route POST /api/auth/update-email
+ */
+const updateEmail = async (req, res) => {
+    try {
+        const { newEmail, password } = req.body;
+
+        if (!newEmail || !password) {
+            return res.status(400).json({
+                success: false,
+                message: 'New email and password are required'
+            });
+        }
+
+        const user = await User.findById(req.user.userId);
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        // Verify password
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+
+        if (!isPasswordValid) {
+            return res.status(401).json({
+                success: false,
+                message: 'Invalid password'
+            });
+        }
+
+        // Check if new email already exists
+        const existingUser = await User.findOne({ email: newEmail.toLowerCase() });
+        if (existingUser) {
+            return res.status(400).json({
+                success: false,
+                message: 'Email already in use'
+            });
+        }
+
+        user.email = newEmail.toLowerCase();
+        await user.save();
+
+        logger.success(`Email updated for user: ${user.email}`);
+
+        res.json({
+            success: true,
+            message: 'Email updated successfully',
+            user: {
+                id: user._id,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                email: user.email
+            }
+        });
+    } catch (error) {
+        logger.error('Update email error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error updating email'
+        });
+    }
+};
+
+/**
+ * Update Password
+ * @route POST /api/auth/update-password
+ */
+const updatePassword = async (req, res) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
+
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({
+                success: false,
+                message: 'Current password and new password are required'
+            });
+        }
+
+        const user = await User.findById(req.user.userId);
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        // Verify current password
+        const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+
+        if (!isPasswordValid) {
+            return res.status(401).json({
+                success: false,
+                message: 'Current password is incorrect'
+            });
+        }
+
+        // Hash new password
+        user.password = await bcrypt.hash(newPassword, 10);
+        await user.save();
+
+        logger.success(`Password updated for user: ${user.email}`);
+
+        res.json({
+            success: true,
+            message: 'Password updated successfully'
+        });
+    } catch (error) {
+        logger.error('Update password error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error updating password'
+        });
+    }
+};
+
+/**
+ * Change Password (alias for updatePassword)
+ * @route POST /api/auth/change-password
+ */
+const changePassword = updatePassword;
+
 module.exports = {
     signup,
     login,
@@ -355,5 +677,12 @@ module.exports = {
     getProfile,
     getAllUsers,
     forgotPassword,
-    resetPassword
+    resetPassword,
+    logout,
+    verifyOtp,
+    resendOtp,
+    updateProfile,
+    updateEmail,
+    updatePassword,
+    changePassword
 };

@@ -12,11 +12,12 @@ const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN;
  * Generate JWT token for a user
  * @param {string} userId - User's MongoDB ID
  * @param {string} email - User's email address
+ * @param {string} role - User's role (user, admin, supplier)
  * @returns {string} JWT token
  */
-const generateToken = (userId, email) => {
+const generateToken = (userId, email, role = 'user') => {
     return jwt.sign(
-        { userId, email },
+        { userId, email, role },
         JWT_SECRET,
         { expiresIn: JWT_EXPIRES_IN }
     );
