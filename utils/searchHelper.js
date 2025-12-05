@@ -1,0 +1,103 @@
+/**
+ * Calculate distance between two coordinates using Haversine formula
+ * @param {number} lat1 
+ * @param {number} lon1 
+ * @param {number} lat2 
+ * @param {number} lon2 
+ * @returns {number} Distance in kilometers
+ */
+const getDistanceFromLatLonInKm = (lat1, lon1, lat2, lon2) => {
+    const R = 6371; // Radius of the earth in km
+    const dLat = deg2rad(lat2 - lat1);
+    const dLon = deg2rad(lon2 - lon1);
+    const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const d = R * c; // Distance in km
+    return d;
+};
+
+const deg2rad = (deg) => {
+    return deg * (Math.PI / 180);
+};
+
+/**
+ * Build MongoDB query object from request query parameters
+ * @param {Object} queryParams 
+ * @returns {Object} MongoDB query object
+ */
+const buildMechanicQuery = (queryParams) => {
+    const query = {};
+
+    // Filter by service type
+    if (queryParams.service) {
+        query.servicesOffered = { $regex: queryParams.service, $options: 'i' };
+    }
+
+    // Filter by rating
+    if (queryParams.minRating) {
+        query['rating.average'] = { $gte: parseFloat(queryParams.minRating) };
+    }
+
+    // Filter by verification status
+    if (queryParams.verified === 'true') {
+        query.isVerified = true;
+    }
+
+    // Filter by price range
+    if (queryParams.priceRange) {
+        query.priceRange = queryParams.priceRange;
+    }
+
+    // Filter by suburb/state
+    if (queryParams.suburb) {
+        query['address.suburb'] = { $regex: queryParams.suburb, $options: 'i' };
+    }
+
+    if (queryParams.state) {
+        query['address.state'] = queryParams.state;
+    }
+
+    // Text search for business name or description
+    if (queryParams.search) {
+        query.$or = [
+            { businessName: { $regex: queryParams.search, $options: 'i' } },
+            { description: { $regex: queryParams.search, $options: 'i' } }
+        ];
+    }
+
+    return query;
+};
+
+/**
+ * Build sort object from query parameters
+ * @param {Object} queryParams 
+ * @returns {Object} MongoDB sort object
+ */
+const buildSortOptions = (queryParams) => {
+    const sort = {};
+
+    switch (queryParams.sortBy) {
+        case 'rating':
+            sort['rating.average'] = -1; // Highest rating first
+            break;
+        case 'responseTime':
+            sort.responseTime = 1; // Fastest response first
+            break;
+        case 'newest':
+            sort.createdAt = -1;
+            break;
+        default:
+            sort['rating.average'] = -1; // Default: sort by rating
+    }
+
+    return sort;
+};
+
+module.exports = {
+    getDistanceFromLatLonInKm,
+    buildMechanicQuery,
+    buildSortOptions
+};
