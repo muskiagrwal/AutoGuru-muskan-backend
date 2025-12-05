@@ -6,7 +6,8 @@ const {
     getMechanicById,
     registerMechanic,
     updateMechanic,
-    getMechanicReviews
+    getMechanicReviews,
+     updateMechanicStatus
 } = require('../controllers/mechanic.controller');
 
 // Public routes
@@ -17,5 +18,7 @@ router.get('/:id/reviews', getMechanicReviews);
 // Protected routes
 router.post('/', protect, registerMechanic);
 router.put('/:id', protect, updateMechanic);
+router.put('/:id/status', updateMechanicStatus);
+
 
 module.exports = router;
