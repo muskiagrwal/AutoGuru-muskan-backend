@@ -4,7 +4,7 @@ const authController = require('../controllers/auth.controller');
 const { authenticateToken } = require('../middleware/auth');
 const { requireAdmin } = require('../middleware/checkRole');
 const { validate, sanitizeFields } = require('../middleware/validator');
-const { registerSchema, loginSchema, forgotPasswordSchema, resetPasswordSchema } = require('../middleware/validationSchemas');
+const { registerSchema, loginSchema, forgotPasswordSchema, resetPasswordSchema, mechanicSignupSchema } = require('../middleware/validationSchemas');
 
 /**
  * Authentication Routes
@@ -38,5 +38,9 @@ router.post('/forgotpassword', forgotPasswordSchema, validate, authController.fo
 router.post('/forgot-password', forgotPasswordSchema, validate, authController.forgotPassword); // Alias
 router.put('/resetpassword/:resetToken', resetPasswordSchema, validate, authController.resetPassword);
 router.put('/reset-password/:resetToken', resetPasswordSchema, validate, authController.resetPassword); // Alias
+
+// Mechanic Authentication Routes
+router.post('/mechanic/signup', mechanicSignupSchema, validate, authController.mechanicSignup);
+router.post('/mechanic/login', loginSchema, validate, authController.mechanicLogin);
 
 module.exports = router;

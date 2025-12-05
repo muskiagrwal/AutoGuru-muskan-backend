@@ -1,5 +1,6 @@
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
+const Mechanic = require('../models/Mechanic');
 const { generateToken } = require('../config/jwt');
 const crypto = require('crypto');
 const { sendEmail } = require('../utils/emailService');
@@ -670,6 +671,201 @@ const updatePassword = async (req, res) => {
  */
 const changePassword = updatePassword;
 
+/**
+ * Mechanic Signup
+ * @route POST /api/auth/mechanic/signup
+ */
+const mechanicSignup = async (req, res) => {
+    const {
+        firstName,
+        lastName,
+        email,
+        password,
+        businessName,
+        phone,
+        address,
+        servicesOffered,
+        abn,
+        description,
+        operatingHours,
+        priceRange
+    } = req.body;
+
+    // Validation
+    if (!firstName || !lastName || !email || !password || !businessName || !phone) {
+        return res.status(400).json({
+            success: false,
+            message: 'First name, last name, email, password, business name, and phone are required'
+        });
+    }
+
+    try {
+        // Check if email already exists
+        const existingUser = await User.findOne({ email: email.toLowerCase() });
+        if (existingUser) {
+            return res.status(400).json({
+                success: false,
+                message: 'An account with this email already exists'
+            });
+        }
+
+        // Hash password
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // Create new user with mechanic role
+        const newUser = new User({
+            firstName,
+            lastName,
+            email: email.toLowerCase(),
+            password: hashedPassword,
+            role: 'mechanic'
+        });
+
+        // Save user to database
+        await newUser.save();
+
+        // Create mechanic profile
+        const mechanicData = {
+            userId: newUser._id,
+            businessName,
+            phone,
+            status: 'pending',
+            isVerified: false
+        };
+
+        // Add optional fields if provided
+        if (address) mechanicData.address = address;
+        if (servicesOffered) mechanicData.servicesOffered = servicesOffered;
+        if (abn) mechanicData.abn = abn;
+        if (description) mechanicData.description = description;
+        if (operatingHours) mechanicData.operatingHours = operatingHours;
+        if (priceRange) mechanicData.priceRange = priceRange;
+
+        const newMechanic = new Mechanic(mechanicData);
+        await newMechanic.save();
+
+        // Generate JWT token
+        const token = generateToken(newUser._id.toString(), newUser.email, newUser.role);
+
+        logger.success(`New mechanic registered: ${newUser.email}`);
+
+        // Return user and mechanic profile without password
+        res.status(201).json({
+            success: true,
+            message: 'Mechanic registered successfully',
+            user: {
+                id: newUser._id,
+                firstName: newUser.firstName,
+                lastName: newUser.lastName,
+                email: newUser.email,
+                role: newUser.role,
+                createdAt: newUser.createdAt
+            },
+            mechanic: {
+                id: newMechanic._id,
+                businessName: newMechanic.businessName,
+                phone: newMechanic.phone,
+                status: newMechanic.status,
+                isVerified: newMechanic.isVerified
+            },
+            token: token
+        });
+    } catch (error) {
+        logger.error('Mechanic signup error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error creating mechanic account',
+            error: error.message
+        });
+    }
+};
+
+/**
+ * Mechanic Login
+ * @route POST /api/auth/mechanic/login
+ */
+const mechanicLogin = async (req, res) => {
+    const { email, password } = req.body;
+
+    // Validation
+    if (!email || !password) {
+        return res.status(400).json({
+            success: false,
+            message: 'Email and password are required'
+        });
+    }
+
+    try {
+        // Find user by email and check if role is mechanic
+        const user = await User.findOne({
+            email: email.toLowerCase(),
+            role: 'mechanic'
+        });
+
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                message: 'Invalid email or password, or account is not a mechanic account'
+            });
+        }
+
+        // Compare password with hashed password
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+
+        if (!isPasswordValid) {
+            return res.status(401).json({
+                success: false,
+                message: 'Invalid email or password'
+            });
+        }
+
+        // Get mechanic profile
+        const mechanic = await Mechanic.findOne({ userId: user._id });
+
+        if (!mechanic) {
+            return res.status(404).json({
+                success: false,
+                message: 'Mechanic profile not found'
+            });
+        }
+
+        // Generate JWT token
+        const token = generateToken(user._id.toString(), user.email, user.role);
+
+        logger.success(`Mechanic logged in: ${user.email}`);
+
+        // Return user and mechanic profile without password
+        res.json({
+            success: true,
+            message: 'Login successful',
+            user: {
+                id: user._id,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                email: user.email,
+                role: user.role,
+                createdAt: user.createdAt
+            },
+            mechanic: {
+                id: mechanic._id,
+                businessName: mechanic.businessName,
+                phone: mechanic.phone,
+                status: mechanic.status,
+                isVerified: mechanic.isVerified,
+                rating: mechanic.rating,
+                servicesOffered: mechanic.servicesOffered
+            },
+            token: token
+        });
+    } catch (error) {
+        logger.error('Mechanic login error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error during login'
+        });
+    }
+};
+
 module.exports = {
     signup,
     login,
@@ -684,5 +880,7 @@ module.exports = {
     updateProfile,
     updateEmail,
     updatePassword,
-    changePassword
+    changePassword,
+    mechanicSignup,
+    mechanicLogin
 };
