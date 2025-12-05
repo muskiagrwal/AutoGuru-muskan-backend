@@ -126,3 +126,32 @@ exports.getMechanicReviews = async (req, res, next) => {
         next(error);
     }
 };
+
+
+// Update mechanic status (Admin only)
+exports.updateMechanicStatus = async (req, res, next) => {
+    try {
+        const { status } = req.body;
+
+        if (!['pending', 'approved', 'rejected'].includes(status)) {
+            return errorResponse(res, 'Invalid status', 400);
+        }
+
+        const mechanic = await Mechanic.findByIdAndUpdate(
+            req.params.id,
+            {
+                status,
+                isVerified: status === 'approved' // Sync isVerified with status
+            },
+            { new: true }
+        ).populate('userId', 'firstName lastName email');
+
+        if (!mechanic) {
+            return errorResponse(res, 'Mechanic not found', 404);
+        }
+
+        return successResponse(res, mechanic, `Mechanic status updated to ${status}`);
+    } catch (error) {
+        next(error);
+    }
+};

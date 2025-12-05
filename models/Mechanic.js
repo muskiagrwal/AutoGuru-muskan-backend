@@ -63,6 +63,11 @@ const mechanicSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+      status: {
+        type: String,
+        enum: ['pending', 'approved', 'rejected'],
+        default: 'pending'
+    },
     rating: {
         average: { type: Number, default: 0 },
         count: { type: Number, default: 0 }

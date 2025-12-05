@@ -1,6 +1,9 @@
 const VehicleModel = require('../models/VehicleModel');
 const VehicleBrand = require('../models/VehicleBrand');
 const response = require('../utils/response');
+const ServiceInterval = require('../models/ServiceInterval');
+
+
 const { uploadToCloudinary } = require('../config/uploadToCloudinary');
 
 //POST-> Create the vehicle models
@@ -123,7 +126,17 @@ exports.getModelById = async (req, res) => {
             return response.sendNotFound(res, 'Model not found');
         }
 
-        response.sendSuccess(res, 200, 'Model fetched successfully', { model });
+        // response.sendSuccess(res, 200, 'Model fetched successfully', { model });
+
+          const serviceIntervals = await ServiceInterval.find({ vehicleModel: model._id }).sort({ distance: 1 });
+
+        response.sendSuccess(res, 200, 'Model fetched successfully', {
+            model: {
+                ...model.toObject(),
+                serviceIntervals
+            }
+        });
+
     } catch (error) {
         console.error('Get model error:', error);
         response.sendError(res, 500, 'Server error while fetching model');
@@ -188,6 +201,24 @@ exports.updateModel = async (req, res) => {
         model.quotesProvided = quotesProvided !== undefined ? quotesProvided : model.quotesProvided;
         model.expertMechanics = expertMechanics !== undefined ? expertMechanics : model.expertMechanics;
 
+         // Update service intervals if provided
+        if (req.body.serviceIntervals && Array.isArray(req.body.serviceIntervals)) {
+            // Delete existing intervals
+            await ServiceInterval.deleteMany({ vehicleModel: model._id });
+
+            // Create new intervals
+            const intervalPromises = req.body.serviceIntervals.map(interval => {
+                return ServiceInterval.create({
+                    vehicleModel: model._id,
+                    distance: interval.distance,
+                    timeInMonths: interval.timeInMonths,
+                    price: interval.price
+                });
+            });
+
+            await Promise.all(intervalPromises);
+        }
+        
         await model.save();
         await model.populate('brand', 'name');
 

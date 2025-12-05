@@ -39,12 +39,28 @@ const VehicleModelSchema = new mongoose.Schema(
     expertMechanics: {
       type: String,
       default: ''
+    },
+     slug: {
+      type: String,
+      unique: true
     }
   },
   { timestamps: true }
 );
 
+// Pre-save hook to generate slug from name
+VehicleModelSchema.pre('save', function (next) {
+  if (this.isModified('name') || this.isNew) {
+    this.slug = this.name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)+/g, '');
+  }
+  next();
+});
+
 //index
 VehicleModelSchema.index({ brand: 1, name: 1 }, { unique: true });  
+VehicleModelSchema.index({ slug: 1 }, { unique: true });
 
 module.exports = mongoose.model("VehicleModel", VehicleModelSchema);  
