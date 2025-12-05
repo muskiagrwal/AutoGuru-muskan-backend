@@ -43,7 +43,7 @@ const VehicleModelSchema = new mongoose.Schema(
      slug: {
       type: String,
       unique: true
-    }
+    },    
   },
   { timestamps: true }
 );
